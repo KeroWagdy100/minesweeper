@@ -29,8 +29,13 @@ public:
                 uint16_t tileNumber = tiles[j + i * width];
 
                 // tile's pos on tileset
-                uint16_t tu = tileNumber * tileSize.x;
-                uint16_t tv = 0;
+                uint16_t tu = (tileNumber % (m_tileset.getSize().x / tileSize.x)) * tileSize.x;
+                uint16_t tv = (tileNumber / (m_tileset.getSize().x / tileSize.x)) * tileSize.y;
+                // uint16_t tu = tileNumber * tileSize.x;
+                // uint16_t tv = 0;
+                // the commented code work well if tileNumber is 100% in range of [0, tileSize - 1]
+                // but the uncommented code makes it work even if any tileNubmber exceed the range
+
 
                 // vertices of current tile
                 sf::Vertex* triangles = &m_vertices[(j + i * width) * 6];

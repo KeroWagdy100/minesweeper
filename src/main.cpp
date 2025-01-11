@@ -1,23 +1,28 @@
 #include <SFML/Graphics.hpp>
 #include <Tilemap.h>
 
+
+template <size_t size>
+void randomizeLevel(uint16_t level[], const uint16_t max, const uint16_t min)
+{
+    srand(time(0));
+    for (uint16_t i = 0; i < size; i++)
+        level[i] = (rand() % max + min + 1);
+}
+
+const uint16_t WIDTH = 9;
+const uint16_t HEIGHT = 9;
+const uint16_t TILE_SIZE = 64;
+
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode({16*32, 8*32}), "Testing Tilemap");
-    // define the level with an array of tile indices
-    constexpr std::array<uint16_t, 16 * 8> level = {
-        0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0,
-        1, 1, 0, 0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3,
-        0, 1, 0, 0, 2, 0, 3, 3, 3, 0, 1, 1, 1, 0, 0, 0,
-        0, 1, 1, 0, 3, 3, 3, 0, 0, 0, 1, 1, 1, 2, 0, 0,
-        0, 0, 1, 0, 3, 0, 2, 2, 0, 0, 1, 1, 1, 1, 2, 0,
-        2, 0, 1, 0, 3, 0, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1,
-        0, 0, 1, 0, 3, 2, 2, 2, 0, 0, 0, 0, 1, 1, 1, 1,
-    };
+    sf::RenderWindow window(sf::VideoMode({WIDTH*TILE_SIZE, HEIGHT*TILE_SIZE}), "Testing My Tilemap");
+    uint16_t level[WIDTH * HEIGHT];
+    randomizeLevel<WIDTH*HEIGHT>(level, 8, 0);
+    
 
     TileMap map;
-    if (!map.load("res/sfml-test-tileset.png", {32, 32}, level.data(), 16, 8))
+    if (!map.load("res/png/tilemap.png", {TILE_SIZE, TILE_SIZE}, level, WIDTH, HEIGHT))
         return -1;
 
     // run the main loop
@@ -35,7 +40,4 @@ int main()
         window.draw(map);
         window.display();
     }
-
-    
-
 }
