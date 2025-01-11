@@ -18,11 +18,11 @@ int main()
 {
     sf::RenderWindow window(sf::VideoMode({WIDTH*TILE_SIZE, HEIGHT*TILE_SIZE}), "Testing My Tilemap");
     uint16_t level[WIDTH * HEIGHT];
-    randomizeLevel<WIDTH*HEIGHT>(level, 8, 0);
+    randomizeLevel<WIDTH*HEIGHT>(level, 12, 0);
     
 
     TileMap map;
-    if (!map.load("res/png/tilemap.png", {TILE_SIZE, TILE_SIZE}, level, WIDTH, HEIGHT))
+    if (!map.load("res/png/tilemap-new.png", {TILE_SIZE, TILE_SIZE}, level, WIDTH, HEIGHT))
         return -1;
 
     // run the main loop
