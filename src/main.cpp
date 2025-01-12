@@ -1,13 +1,12 @@
 #include <SFML/Graphics.hpp>
 #include <Tilemap.h>
+#include <Game.h>
 
-
-template <size_t size>
-void randomizeLevel(uint16_t level[], const uint16_t max, const uint16_t min)
+template <short size>
+void tilesToMapIndex(game::Tile level[], uint16_t indices[])
 {
-    srand(time(0));
     for (uint16_t i = 0; i < size; i++)
-        level[i] = (rand() % max + min + 1);
+        indices[i] = level[i].getMapIndex();
 }
 
 const uint16_t WIDTH = 9;
@@ -17,12 +16,14 @@ const uint16_t TILE_SIZE = 64;
 int main()
 {
     sf::RenderWindow window(sf::VideoMode({WIDTH*TILE_SIZE, HEIGHT*TILE_SIZE}), "Testing My Tilemap");
-    uint16_t level[WIDTH * HEIGHT];
-    randomizeLevel<WIDTH*HEIGHT>(level, 12, 0);
+    game::Tile level[WIDTH*HEIGHT];
+    uint16_t mapIndices[WIDTH*HEIGHT];
+    game::generateLevel(level, WIDTH, HEIGHT);
+    tilesToMapIndex<WIDTH*HEIGHT>(level, mapIndices);
     
 
     TileMap map;
-    if (!map.load("res/png/tilemap-new.png", {TILE_SIZE, TILE_SIZE}, level, WIDTH, HEIGHT))
+    if (!map.load("res/png/tilemap-new.png", {TILE_SIZE, TILE_SIZE}, mapIndices, WIDTH, HEIGHT))
         return -1;
 
     // run the main loop
