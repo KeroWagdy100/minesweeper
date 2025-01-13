@@ -6,10 +6,9 @@ int main()
 {
     bool playAgain = false;
     short playOn64;
-    game::Game game;
     do
     {
-
+        game::Game game;
         std::cout << "Play on 32x32 or 64x64?\nyou can change choose dimensions when game starts the next time\n"
                     << "Enter [0] for 32x32 | [1] for 64x64 | [else] to exit game\n";
         std::cin >> playOn64;

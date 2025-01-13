@@ -12,7 +12,7 @@ All CMake script files are written by default in the template. Just knew how to 
 
 # How to install
 
-Game is not published yet, but you can always clone the repo or donwload it right away and build the project yourself and start playing.
+Game is not deployed yet, but you can always clone the repo or donwload it right away and build the project yourself and start playing.
 
 - [CMake](https://cmake.org/download/) V3.28.0 Required.
 - [SFML](https://www.sfml-dev.org/download/) V3.0.0 Required (CMake fetches it in the script, you don't have to install it yourself).
