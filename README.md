@@ -12,7 +12,16 @@ All CMake script files are written by default in the template. Just knew how to 
 
 # How to install
 
-Game is not deployed yet, but you can always clone the repo or donwload it right away and build the project yourself and start playing.
+## Simple Way
+
+<!-- [Download the game](https://github.com/KeroWagdy100/minesweeper/releases/download/v1.0.0/minesweeper.zip) and start playing! -->
+[Download the repo](https://github.com/KeroWagdy100/minesweeper/archive/refs/heads/master.zip), open donwload folder, click on minesweeper.exe and start playing! (anything outside download folder can be deleted, they're not requried)
+
+-- !! (CAUTION: In general, opening a .exe file is dangerous unless from a trusted source) !!
+
+
+## Hard Way
+you can clone the repo or directly donwload it, build the project yourself and start playing.
 
 - [CMake](https://cmake.org/download/) V3.28.0 Required.
 - [SFML](https://www.sfml-dev.org/download/) V3.0.0 Required (CMake fetches it in the script, you don't have to install it yourself).
