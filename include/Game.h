@@ -87,6 +87,14 @@ namespace game
         {
             // Setup window
             window.setFramerateLimit(60);
+            // Setup UI (Timer && N_MINES)
+            clock.reset();
+            timerText.setPosition({10u, 5u});
+            timerText.setFillColor(sf::Color::Red);
+            timerText.setString(std::to_string(clock.getElapsedTime().asMilliseconds() * 1000));
+            minesText.setPosition({10u, 35u});
+            minesText.setFillColor(sf::Color::Red);
+            minesText.setString(std::to_string(mines - flags));
             // Generate new level
             generateLevel();
             // map level to tileset indices
@@ -107,6 +115,16 @@ namespace game
                 // window drawing
                 window.clear();
                 window.draw(tilemap);
+                // update UI 
+                if (!gameFinished && clock.isRunning())
+                    timerText.setString(std::to_string(clock.getElapsedTime().asMilliseconds() / 1000));
+                
+                // close game after 5s from game finish
+                // note that clock is restarted at endGame()
+                else if (gameFinished && clock.getElapsedTime().asMilliseconds() >= 5000)
+                    break;
+                window.draw(timerText);
+                window.draw(minesText);
                 window.display();
             }
             
@@ -311,6 +329,8 @@ namespace game
             }
             else if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>())
             {
+                if (!clock.isRunning())
+                    clock.start();
                 bool left = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
                 bool right = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right);
                 // Both Buttons Clicked (Peeking Neighbours)
@@ -339,7 +359,7 @@ namespace game
                     if (flagCounter == tiles[tileIndex1D].m_mineCounter)
                     {
                         if (flagNotOnMine)
-                            endGame();
+                            endGame(false);
                         else
                         {
                             for (uint16_t i = 0; i < counter; i++)
@@ -363,7 +383,7 @@ namespace game
                     if (tiles[tileIndex1D].m_isMine)
                     {
                         updateTile(tileIndex1D, Tile::state::mineClicked);
-                        endGame();
+                        endGame(false);
                     }
                     else
                     {
@@ -379,13 +399,15 @@ namespace game
                     {
                         updateTile(tileIndex1D, Tile::state::flagged);
                         flags++;
+                        minesText.setString(std::to_string(mines - flags));
                         if (flags == mines)
-                            endGame();
+                            endGame(true);
                     }
                     else if (tiles[tileIndex1D].m_state == Tile::state::flagged)
                     {
                         updateTile(tileIndex1D, Tile::state::hidden);
                         flags--;
+                        minesText.setString(std::to_string(mines - flags));
                     }
                     
                 }
@@ -395,25 +417,6 @@ namespace game
         }
 
 
-        // void unhideEmptyNeighbours8(uint16_t index1D)
-        // {
-        //     Tile* neighbours[8];
-            
-        //     uint16_t count = getHiddenNeighbours8(index1D, neighbours);
-        //     for (uint16_t i = 0; i < count; ++i)
-        //     {
-        //         if (!(neighbours[i]->m_isMine))
-        //         {
-        //             // unhide neighbour if not mine
-        //             updateTile(neighbours[i], Tile::state::notHidden);
-
-        //             // recursively unhide empty negihbours if current
-        //             // negihbour is empty
-        //             if (neighbours[i]->m_mineCounter == 0)
-        //                 unhideEmptyNeighbours8(neighbours[i] - tiles);
-        //         }
-        //     }
-        // }
         void unhideEmptyNeighbours(uint16_t index1D)
         {
             Tile* neighbours[4];
@@ -434,9 +437,18 @@ namespace game
             }
         }
 
-        void endGame()
+        void endGame(bool userWon)
         {
-            std::cout << "Game Finished\n";
+            gameFinished = true;
+            clock.restart();
+            if (userWon)
+            {
+                // check win
+                for (uint16_t i = 0; i < width * height; ++i)
+                    if (tiles[i].m_state == Tile::state::flagged && !tiles[i].m_isMine)
+                        userWon = false;
+            }
+            std::cout << (userWon ? "win" : "lose");
             for (uint16_t i = 0; i < width * height; ++i)
             {
                 if (tiles[i].m_state != Tile::state::mineClicked && tiles[i].m_isMine)
@@ -465,6 +477,11 @@ namespace game
         TileMap tilemap;
         Tile tiles[width * height]; // 9 * 9 * 4 = 324-bytes
         uint16_t mapIndices[width * height]; // 9 * 9 * 2 = 162-bytes
+        sf::Clock clock;
+        sf::Font font = sf::Font("res/fonts/DS-DIGI.TTF");
+        sf::Text timerText = sf::Text(font, "00");
+        sf::Text minesText = sf::Text(font, "");
+        bool gameFinished = false;
         ////////////////////////////////////////////////
     };
 };
