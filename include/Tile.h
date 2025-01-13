@@ -4,50 +4,56 @@
 namespace game
 {
 
+    /**
+     * @brief type of each tile in the tileset sorted by their indices.
+     * 
+     */
     enum mapIndex {
         empty = 0, one, two, three, four, five, six, seven, eight,
         hidden, flag, mine, mineClicked
+    };
+
+    // State of each tile
+    enum class TileState : char // 1-byte
+    {
+        hidden, notHidden, flagged, peek, mineClicked
     };
 
     // should be 4-bytes
     struct Tile 
     {
     public:
-        enum class state : char // 1-byte
-        {
-            hidden, notHidden, flagged, peek, mineClicked
-        };
         short m_mineCounter = 0; // 2-bytes
         bool  m_isMine = 0; // 1-byte
-        state m_state = state::hidden; // 1-byte // TODO: Let Init State = Hidden
+        TileState m_state = TileState::hidden; // 1-byte
 
         mapIndex getMapIndex() const {
             return getMapIndex(*this);
         }
+
         static mapIndex getMapIndex(const Tile& tile)
         {
-            const auto& st = tile.m_state;
+            const auto& state = tile.m_state;
             const auto& isMine = tile.m_isMine;
             const auto& mineCounter = tile.m_mineCounter;
-            if (st == state::hidden)
+
+            if (state == TileState::hidden)
                 return mapIndex::hidden;
 
-            else if (st == state::flagged)
+            else if (state == TileState::flagged)
                 return mapIndex::flag;
 
-            else if (st == state::peek)
+            else if (state == TileState::peek)
                 return mapIndex::empty;
 
-            else if (st == state::mineClicked && isMine)
+            else if (state == TileState::mineClicked && isMine)
                 return mapIndex::mineClicked;
 
             else if (isMine)
                 return mapIndex::mine;
-
             else
                 return static_cast<mapIndex>(mineCounter);
         }
     };
     
 } // namespace game
-

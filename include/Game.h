@@ -7,16 +7,6 @@
 #include <algorithm>
 #include <iostream>
 
-template <class T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
-{
-    os << "[";
-    for (size_t i = 0; i < v.size(); ++i)
-        os << v.at(i) << (i == v.size() - 1 ? "" : ", ");
-    os << "]";
-    return os;
-}
-
 namespace game
 {
     // Convert Dimensions (1D to 2D)
@@ -38,6 +28,7 @@ namespace game
         {
         }
 
+        // Init The Game (should be called before run)
         bool init(const std::filesystem::path& tilesetPath)
         {
             // Setup window
@@ -115,7 +106,7 @@ namespace game
                     neighbours[i]->m_mineCounter++;
             }
             
-            // map tiles to their index on tilemap
+            // map tiles to their indices on tilemap
             for (uint16_t i = 0; i < width * height; i++)
                 mapIndices[i] = tiles[i].getMapIndex();
         }
@@ -127,7 +118,7 @@ namespace game
          * @param tileIndex1D index in 1Dim tiles array
          * @param state tile's new state
          */
-        void updateTile(uint16_t tileIndex1D, const Tile::state& state)
+        void updateTile(uint16_t tileIndex1D, const TileState& state)
         {
             tiles[tileIndex1D].m_state = state;
             auto tileIndex2D = convertDim1To2(tileIndex1D, width);
@@ -140,7 +131,7 @@ namespace game
          * @param tilePtr  tile pointer
          * @param state tile's new state
          */
-        void updateTile(Tile* tilePtr, const Tile::state& state)
+        void updateTile(Tile* tilePtr, const TileState& state)
         {
             if (tilePtr == nullptr)
                 return;
@@ -210,7 +201,7 @@ namespace game
 
         /**
          * @brief Get array of pointers to hidden-close neighbours of one tile
-         * a hidden neighbour: is a tile whose state is Tile::state::hidden
+         * a hidden neighbour: is a tile whose state is TileState::hidden
          * a close neighbour can be [down, left, up, right]
          * @param tileIndex1D index in 1Dim tiles array
          * @param neighbours array of pointers (PLEASE MAKE SURE THAT THIS IS ALLOCATED IN MEMORY)
@@ -225,27 +216,27 @@ namespace game
             if (i != height - 1)
             {
                 Tile* neighbour = &tiles[tileIndex1D + width];
-                if (neighbour->m_state == Tile::state::hidden || neighbour->m_state == Tile::state::peek)
+                if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
                     neighbours[counter++] = neighbour; // down
             }
 
             if (i != 0)
             {
                 Tile* neighbour = &tiles[tileIndex1D - width];
-                if (neighbour->m_state == Tile::state::hidden || neighbour->m_state == Tile::state::peek)
+                if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
                     neighbours[counter++] = neighbour; // up
             }
 
             if (j != width - 1)
             {
                 Tile* neighbour = &tiles[tileIndex1D + 1];
-                if (neighbour->m_state == Tile::state::hidden || neighbour->m_state == Tile::state::peek)
+                if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
                     neighbours[counter++] = neighbour; // right
             }
             if (j != 0)
             {
                 Tile* neighbour = &tiles[tileIndex1D - 1];
-                if (neighbour->m_state == Tile::state::hidden || neighbour->m_state == Tile::state::peek)
+                if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
                     neighbours[counter++] = neighbour; // left
             }
             return counter;
@@ -275,12 +266,12 @@ namespace game
             //     {
             //         // hide prev hovered tile 
             //         auto hoveredIndex2D = convertDim1To2(hoveredIndex, width);
-            //         if (tiles[hoveredIndex].m_state == Tile::state::hidden)
+            //         if (tiles[hoveredIndex].m_state == TileState::hidden)
             //             tilemap.updateTile(hoveredIndex2D.x, hoveredIndex2D.y, mapIndex::hidden);
             //         // update current hovered tile
             //         hoveredIndex = col + row * width;
             //         Tile temp = tiles[hoveredIndex];
-            //         temp.m_state = Tile::state::notHidden;
+            //         temp.m_state = TileState::notHidden;
             //         tilemap.updateTile(row, col, temp.getMapIndex());
             //     }
             // }
@@ -293,8 +284,8 @@ namespace game
             //         auto counter = getNeighbours8(tilePeekedIndex1D, neighborus);
             //         for (uint16_t i = 0; i < counter; i++)
             //         {
-            //             if (neighborus[i]->m_state == Tile::state::peek)
-            //                 updateTile(neighborus[i], Tile::state::hidden);
+            //             if (neighborus[i]->m_state == TileState::peek)
+            //                 updateTile(neighborus[i], TileState::hidden);
             //         }
             //         wasPeeking = false;
             //     }
@@ -303,7 +294,7 @@ namespace game
 
             else if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>())
             {
-                // start timer whenever the user presses on any position
+                // start timer whenever the player presses on any position
                 if (!clock.isRunning())
                     clock.start();
                 
@@ -318,7 +309,7 @@ namespace game
                 if (left && right)
                 {
                     // to peek neighbours of a tile, the tile must be not-hidden
-                    if (tiles[tileIndex1D].m_state != Tile::state::notHidden)
+                    if (tiles[tileIndex1D].m_state != TileState::notHidden)
                         return;
 
                     Tile* neighbours[8];
@@ -330,26 +321,26 @@ namespace game
                     // peek on hidden neighbours
                     for (uint16_t i = 0; i < counter; i++)
                     {
-                        if (neighbours[i]->m_state == Tile::state::hidden)
-                            updateTile(neighbours[i], Tile::state::peek);
+                        if (neighbours[i]->m_state == TileState::hidden)
+                            updateTile(neighbours[i], TileState::peek);
 
                         // check neighbours with flags
-                        else if (neighbours[i]->m_state == Tile::state::flagged)
+                        else if (neighbours[i]->m_state == TileState::flagged)
                         {
                             flagCounter++;
-                            // if user puts a flag on a not-mined tile
-                            // there's possibility that user loses
+                            // if player puts a flag on a not-mined tile
+                            // there's possibility that player loses
                             if (!(neighbours[i]->m_isMine))
                                 flagNotOnMine = true;
                         }
                     }
 
                     // no. of neighbours with flags >= tile number itself
-                    // then user is not peeking, but opening all neighbours
+                    // then player is not peeking, but opening all neighbours
                     if (flagCounter == tiles[tileIndex1D].m_mineCounter)
                     {
-                        // a flag was on wrong tile, and the user tries to open
-                        // the tile, then user loses.
+                        // a flag was on wrong tile, and the player tries to open
+                        // the tile, then player loses.
                         if (flagNotOnMine)
                         {
                             endGame(false);
@@ -357,7 +348,7 @@ namespace game
                         }
 
                         // opening non-mined neighbours
-                        // since user guessed the mines by putting flags correct
+                        // since player guessed the mines by putting flags correct
                         for (uint16_t i = 0; i < counter; i++)
                         {
                             Tile* neighbour = neighbours[i];
@@ -366,7 +357,7 @@ namespace game
                                 unhideEmptyNeighbours(neighbours[i] - tiles);
 
                             else if (!neighbour->m_isMine)
-                                updateTile(neighbours[i], Tile::state::notHidden);
+                                updateTile(neighbours[i], TileState::notHidden);
                         }
                     }
                     // PEEK ON HOVER
@@ -382,18 +373,18 @@ namespace game
                 else if (left)
                 {
                     // ignore clicking on already-openned tiles
-                    if (tiles[tileIndex1D].m_state == Tile::state::notHidden)
+                    if (tiles[tileIndex1D].m_state == TileState::notHidden)
                         return;
-                    // user opens a mine -> Loses
+                    // player opens a mine -> Loses
                     if (tiles[tileIndex1D].m_isMine)
                     {
-                        updateTile(tileIndex1D, Tile::state::mineClicked);
+                        updateTile(tileIndex1D, TileState::mineClicked);
                         endGame(false);
                     }
                     else
                     {
-                        updateTile(tileIndex1D, Tile::state::notHidden);
-                        // user opens an empty tile
+                        updateTile(tileIndex1D, TileState::notHidden);
+                        // player opens an empty tile
                         if (tiles[tileIndex1D].m_mineCounter == 0)
                             unhideEmptyNeighbours(tileIndex1D);
                     }
@@ -403,24 +394,24 @@ namespace game
                 else if (right)
                 {
                     // ignore right-clicking on openned tile
-                    if (tiles[tileIndex1D].m_state == Tile::state::notHidden)
+                    if (tiles[tileIndex1D].m_state == TileState::notHidden)
                         return;
 
                     // unsetting a flag
-                    if (tiles[tileIndex1D].m_state == Tile::state::flagged)
+                    if (tiles[tileIndex1D].m_state == TileState::flagged)
                     {
-                        updateTile(tileIndex1D, Tile::state::hidden);
+                        updateTile(tileIndex1D, TileState::hidden);
                         flags--;
                         minesText.setString(std::to_string(mines - flags));
                         return;
                     }
 
                     // setting a flag
-                    updateTile(tileIndex1D, Tile::state::flagged);
+                    updateTile(tileIndex1D, TileState::flagged);
                     flags++;
                     minesText.setString(std::to_string(mines - flags));
 
-                    // if user uses all their flags - endGame
+                    // if player uses all their flags - endGame
                     // if all flags on all mines, then win, else lose
                     if (flags == mines)
                         endGame(checkWin());
@@ -445,7 +436,7 @@ namespace game
                 if (neighbours[i]->m_isMine)
                     continue;
                 
-                updateTile(neighbours[i], Tile::state::notHidden);
+                updateTile(neighbours[i], TileState::notHidden);
 
                 // recursively unhide empty neighbours if current
                 // negihbour is empty (has no mined neighbour)
@@ -455,7 +446,7 @@ namespace game
         }
 
         /**
-         * @brief check if user win 
+         * @brief check if player win 
          * 
          * @return false if any tile with a flag is not mined or vice versa
          * @return true when all mined tiles are flagged and vice versa
@@ -465,7 +456,7 @@ namespace game
             for (uint16_t i = 0; i < width * height; ++i)
             {
                 bool isMined = tiles[i].m_isMine;
-                bool isFlagged = tiles[i].m_state == Tile::state::flagged;
+                bool isFlagged = tiles[i].m_state == TileState::flagged;
                 if (isMined && !isFlagged || !isMined && isFlagged)
                     return false;
             }
@@ -480,11 +471,11 @@ namespace game
 
             std::cout << (userWon ? "win" : "lose") << "\n";
 
-            // open all mines to let user know where were the mines
+            // open all mines to let player know where were the mines
             for (uint16_t i = 0; i < width * height; ++i)
             {
-                if (tiles[i].m_state != Tile::state::mineClicked && tiles[i].m_isMine)
-                    updateTile(i, Tile::state::notHidden);
+                if (tiles[i].m_state != TileState::mineClicked && tiles[i].m_isMine)
+                    updateTile(i, TileState::notHidden);
             }
         }
 
@@ -512,16 +503,19 @@ namespace game
         ////////////////////////////////////////////////
 
         // Member Fields
-        uint16_t mines = 10; // TODO: change number of mines 
-        uint16_t flags = 0; 
         sf::RenderWindow window { sf::VideoMode({width * tileSize, height * tileSize}), "Minesweeper" }; // unknown-bytes
         TileMap tilemap;
-        Tile tiles[width * height]; // 9 * 9 * 4 = 324-bytes
-        uint16_t mapIndices[width * height]; // 9 * 9 * 2 = 162-bytes
+        Tile tiles[width * height];
+
+        const uint16_t mines = 10; // Number of Mines in the map
+        uint16_t flags = 0; // Number of flags put by player
+        uint16_t mapIndices[width * height];
+
         sf::Clock clock;
         sf::Font font = sf::Font("res/fonts/DS-DIGI.TTF");
         sf::Text timerText = sf::Text(font, "00");
         sf::Text minesText = sf::Text(font, "");
+
         bool gameFinished = false;
         ////////////////////////////////////////////////
     };
