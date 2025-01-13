@@ -3,6 +3,18 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
+#include <algorithm>
+#include <iostream>
+
+template <class T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+{
+    os << "[";
+    for (size_t i = 0; i < v.size(); ++i)
+        os << v.at(i) << (i == v.size() - 1 ? "" : ", ");
+    os << "]";
+    return os;
+}
 
 namespace game
 {
@@ -117,7 +129,7 @@ namespace game
 
                 // Update neighbours' counter
                 Tile* neighbours[8];
-                auto counter = getNeighbours(mineIndex, neighbours);
+                auto counter = getNeighbours8(mineIndex, neighbours);
                 for (uint16_t i = 0; i < counter; i++)
                     neighbours[i]->m_mineCounter++;
 
@@ -136,6 +148,14 @@ namespace game
             auto tileIndex2D = convertD12(tileIndex1D, width);
             tilemap.updateTile(tileIndex2D.x, tileIndex2D.y, tiles[tileIndex1D].getMapIndex());
         }
+        void updateTiles(const std::vector<uint16_t>& cols, uint16_t row, const Tile::state& state)
+        {
+            for (uint16_t i = 0; i < cols.size(); ++i)
+            {
+                uint16_t tileIndex1D = convertD21(sf::Vector2u(row, cols.at(i)), width);
+                updateTile(tileIndex1D, state);
+            }
+        }
 
         void updateTile(Tile* tilePtr, const Tile::state& state)
         {
@@ -147,8 +167,11 @@ namespace game
             tilemap.updateTile(tileIndex2D.x, tileIndex2D.y, tiles[tileIndex1D].getMapIndex());
         }
 
-        // Fills given array of pointers and returns its size
-        uint16_t getNeighbours(const uint16_t tileIndex1D, Tile** neighbours)
+
+        // Fills given array of pointers to all negihbours and returns its size
+        // (Max Number Of Neighbours is 8)
+        // Neighbours are [down left, left, up left, up, up right, right, down right, down]
+        uint16_t getNeighbours8(const uint16_t tileIndex1D, Tile** neighbours)
         {
             sf::Vector2u tileIndex2D = convertD12(tileIndex1D, width);
             auto& i = tileIndex2D.x;
@@ -199,6 +222,44 @@ namespace game
             return counter;
         }
 
+        // Fills given array of pointers to close hidden negihbours only and returns its size
+        // (Max Number Of Neighbours is 4)
+        // Close Neighbours are [left, right, up, down]
+        uint16_t getHiddenNeighbours4(const uint16_t tileIndex1D, Tile** neighbours)
+        {
+            sf::Vector2u tileIndex2D = convertD12(tileIndex1D, width);
+            auto& i = tileIndex2D.x;
+            auto& j = tileIndex2D.y;
+            uint16_t counter = 0;
+            if (i != height - 1)
+            {
+                Tile* neighbour = &tiles[tileIndex1D + width];
+                if (neighbour->m_state == Tile::state::hidden)
+                    neighbours[counter++] = neighbour; // down
+            }
+
+            if (i != 0)
+            {
+                Tile* neighbour = &tiles[tileIndex1D - width];
+                if (neighbour->m_state == Tile::state::hidden)
+                    neighbours[counter++] = neighbour; // up
+            }
+
+            if (j != width - 1)
+            {
+                Tile* neighbour = &tiles[tileIndex1D + 1];
+                if (neighbour->m_state == Tile::state::hidden)
+                    neighbours[counter++] = neighbour; // right
+            }
+            if (j != 0)
+            {
+                Tile* neighbour = &tiles[tileIndex1D - 1];
+                if (neighbour->m_state == Tile::state::hidden)
+                    neighbours[counter++] = neighbour; // left
+            }
+            return counter;
+        }
+
         void handleEvent(const std::optional<sf::Event>& event)
         {
             static bool wasPeeking = false;
@@ -209,37 +270,37 @@ namespace game
             if (event->is<sf::Event::Closed>())
                 window.close();
 
-            else if (const auto* mouse = event->getIf<sf::Event::MouseMoved>())
-            {
+            // else if (const auto* mouse = event->getIf<sf::Event::MouseMoved>())
+            // {
 
-                // PEEK ON HOVER
-                uint16_t col, row;
-                {
-                    auto tileIndex2D = tileIndexFromScreenPos(mouse->position);
-                    col = tileIndex2D.y;
-                    row = tileIndex2D.x;
-                }
-                // hover on different tile
-                if (hoveredIndex != col + row * width)
-                {
-                    // hide prev hovered tile 
-                    auto hoveredIndex2D = convertD12(hoveredIndex, width);
-                    if (tiles[hoveredIndex].m_state == Tile::state::hidden)
-                        tilemap.updateTile(hoveredIndex2D.x, hoveredIndex2D.y, mapIndex::hidden);
-                    // update current hovered tile
-                    hoveredIndex = col + row * width;
-                    Tile temp = tiles[hoveredIndex];
-                    temp.m_state = Tile::state::notHidden;
-                    tilemap.updateTile(row, col, temp.getMapIndex());
-                }
-            }
+            //     // PEEK ON HOVER // Only For Debugging purposes
+            //     uint16_t col, row;
+            //     {
+            //         auto tileIndex2D = tileIndexFromScreenPos(mouse->position);
+            //         col = tileIndex2D.y;
+            //         row = tileIndex2D.x;
+            //     }
+            //     // hover on different tile
+            //     if (hoveredIndex != col + row * width)
+            //     {
+            //         // hide prev hovered tile 
+            //         auto hoveredIndex2D = convertD12(hoveredIndex, width);
+            //         if (tiles[hoveredIndex].m_state == Tile::state::hidden)
+            //             tilemap.updateTile(hoveredIndex2D.x, hoveredIndex2D.y, mapIndex::hidden);
+            //         // update current hovered tile
+            //         hoveredIndex = col + row * width;
+            //         Tile temp = tiles[hoveredIndex];
+            //         temp.m_state = Tile::state::notHidden;
+            //         tilemap.updateTile(row, col, temp.getMapIndex());
+            //     }
+            // }
 
             else if (const auto* mouse = event->getIf<sf::Event::MouseButtonReleased>())
             {
                 if (wasPeeking)
                 {
                     Tile* neighborus[8];
-                    auto counter = getNeighbours(tilePeekedIndex1D, neighborus);
+                    auto counter = getNeighbours8(tilePeekedIndex1D, neighborus);
                     for (uint16_t i = 0; i < counter; i++)
                     {
                         if (neighborus[i]->m_state == Tile::state::peek)
@@ -258,7 +319,7 @@ namespace game
                 if (left && right)
                 {
                     Tile* neighbours[8];
-                    auto counter = getNeighbours(tileIndex1D, neighbours);
+                    auto counter = getNeighbours8(tileIndex1D, neighbours);
 
                     for (uint16_t i = 0; i < counter; i++)
                     {
@@ -293,39 +354,25 @@ namespace game
             }
         }
 
+
         void unhideEmptyNeighbours(uint16_t index1D)
         {
-            auto index2D = convertD12(index1D, width);
-            auto& row = index2D.x;
-            auto& col = index2D.y;
-            // Row of Clicked Empty
-            for (; col < width; ++col)
+            Tile* neighbours[4];
+            
+            uint16_t count = getHiddenNeighbours4(index1D, neighbours);
+            for (uint16_t i = 0; i < count; ++i)
             {
-                index1D = convertD21(index2D, width);
-                if (tiles[index1D].m_mineCounter != 0)
-                    break;
-                updateTile(index1D, Tile::state::notHidden);
-            }
-            if (col > 0)
-                col--;
-            for (; col >= 0; --col)
-            {
-                index1D = convertD21(index2D, width);
-                if (tiles[index1D].m_mineCounter != 0)
-                    break;
-                updateTile(index1D, Tile::state::notHidden);
-                if (col == 0)
-                    break;
-            }
+                if (!(neighbours[i]->m_isMine))
+                {
+                    // unhide neighbour if not mine
+                    updateTile(neighbours[i], Tile::state::notHidden);
 
-            // Upper rows
-            for (; row >= 0; row--)
-            {
-                // if ()
-                if (row == 0)
-                    break;
+                    // recursively unhide empty negihbours if current
+                    // negihbour is empty
+                    if (neighbours[i]->m_mineCounter == 0)
+                        unhideEmptyNeighbours(neighbours[i] - tiles);
+                }
             }
-
         }
 
         void endGame()
