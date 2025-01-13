@@ -448,7 +448,7 @@ namespace game
                     if (tiles[i].m_state == Tile::state::flagged && !tiles[i].m_isMine)
                         userWon = false;
             }
-            std::cout << (userWon ? "win" : "lose");
+            std::cout << (userWon ? "win" : "lose") << "\n";
             for (uint16_t i = 0; i < width * height; ++i)
             {
                 if (tiles[i].m_state != Tile::state::mineClicked && tiles[i].m_isMine)
