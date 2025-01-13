@@ -29,10 +29,13 @@ namespace game
         }
 
         // Init The Game (should be called before run)
-        bool init(const std::filesystem::path& tilesetPath)
+        bool init(const std::filesystem::path& tilesetPath, uint16_t tileSize)
         {
-            // Setup window
+            this->tileSize = tileSize;
+            // Setup Window
+            window.create(sf::VideoMode({(unsigned int)(width * tileSize), (unsigned int)(height * tileSize)}), "Minesweeper" );
             window.setFramerateLimit(60);
+            window.setIcon(sf::Image("res/png/mine-icon-256.png"));
             // Setup UI (Timer && N_MINES)
             clock.reset();
 
@@ -51,8 +54,13 @@ namespace game
             return tilemap.load(tilesetPath, {tileSize, tileSize}, mapIndices, width, height);
         }
 
-        // Game/Main Loop
-        void run()
+        /**
+         * @brief Game/Main Loop
+         * 
+         * @return true if game finishes before player closing window
+         * @return false if player closes window
+         */
+        bool run()
         {
             while (window.isOpen())
             {
@@ -72,11 +80,14 @@ namespace game
                 else if (gameFinished && clock.getElapsedTime().asMilliseconds() >= 2000)
                 {
                     window.close();
+                    return true;
                 }
                 window.draw(timerText);
                 window.draw(minesText);
                 window.display();
             }
+            // if user closed window before game finish
+            return false;
             
         }
 
@@ -485,7 +496,7 @@ namespace game
          * @param screenPos screen position (according to sfml)
          * @return uint16_t index of tile in 1D array 
          */
-        static uint16_t tileIndexFromScreenPos(const sf::Vector2i& screenPos)
+        uint16_t tileIndexFromScreenPos(const sf::Vector2i& screenPos)
         {
             const auto& x = screenPos.x;
             const auto& y = screenPos.y;
@@ -499,11 +510,11 @@ namespace game
         // Static Data
         static const uint16_t width = 9u; // 2-bytes
         static const uint16_t height = 9u; // 2-bytes
-        static const uint16_t tileSize = 64u; // 2-bytes
         ////////////////////////////////////////////////
 
         // Member Fields
-        sf::RenderWindow window { sf::VideoMode({width * tileSize, height * tileSize}), "Minesweeper" }; // unknown-bytes
+        uint16_t tileSize = 64u; // 2-bytes // tile size in pixel (64 x 64)
+        sf::RenderWindow window;
         TileMap tilemap;
         Tile tiles[width * height];
 
