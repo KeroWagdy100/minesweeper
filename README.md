@@ -53,7 +53,7 @@ The objective in Minesweeper is to find and mark all the mines hidden under the 
 - A number, which tells you how many of its adjacent squares have mines in them.
 Nothing. In this case you know that none of the adjacent squares have mines, and they will be automatically opened as well.
 
-- It is `NOT` guaranteed that the first square you open won't contain a mine, so if start by clicking on a mine, don't bother, just play again dude!.
+- It is guaranteed that the first square you open won't contain a mine, so start by clicking on any square.
 Often you'll hit on an empty square on the first try and then you'll open up a few adjacent squares as well, which makes it easier to continue. Then it's basically just looking at the numbers shown, and figuring out where the mines are.
 
 ## Gameplay

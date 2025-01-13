@@ -26,7 +26,7 @@ namespace game
         Game();
 
         // Init The Game (should be called before run)
-        bool init(const std::filesystem::path& tilesetPath, uint16_t tileSize);
+        bool init(const std::filesystem::path& _tilesetPath, uint16_t tileSize);
         
         /**
          * @brief Game/Main Loop
@@ -41,7 +41,7 @@ namespace game
          * @brief puts mines in random tiles and updating their neighbours counter
          * 
          */
-        void generateLevel();
+        void generateLevel(uint16_t firstClickTileIndex);
     
         /**
          * @brief update one tile's state
@@ -120,8 +120,9 @@ namespace game
         uint16_t tileSize; // tile size in pixel (e.g. 64 x 64)
         Tile tiles[width * height]; // array of structs representing tile states
         TileMap tilemap; // the board that is drawn
+        std::filesystem::path tilesetPath;
 
-        const uint16_t mines = (width * height) / 3; // Number of Mines in the map -- relative to board size
+        const uint16_t mines = (width * height) / 4; // Number of Mines in the map -- relative to board size
         uint16_t flags = 0; // Number of flags put by player
         uint16_t mapIndices[width * height];
 
@@ -131,6 +132,7 @@ namespace game
         sf::Text minesText {font};
 
         bool gameFinished;
+        bool gameStarted;
         ////////////////////////////////////////////////
     };
 };

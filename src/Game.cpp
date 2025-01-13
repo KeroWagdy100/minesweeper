@@ -20,10 +20,11 @@ namespace game
     }
 
     // Init The Game (should be called before run)
-    bool Game::init(const std::filesystem::path& tilesetPath, uint16_t tileSize)
+    bool Game::init(const std::filesystem::path& _tilesetPath, uint16_t tileSize)
     {
         // Setup Game Fields
         gameFinished = false;
+        gameStarted = false; // game starts only when player open his first tile
         flags = 0;
 
         // Setup Window
@@ -51,14 +52,23 @@ namespace game
         ///////////////////////////////////////////
 
         // Setup Tiles
+        tilesetPath = _tilesetPath;
+        Tile tempTile;
         for (uint16_t i = 0; i < width * height; ++i)
-            tiles[i] = Tile();
+        {
+            tiles[i] = tempTile;
+            mapIndices[i] = tempTile.getMapIndex();
+        }
         this->tileSize = tileSize;
+
         
-        // Generate level and update mapIndices
-        generateLevel();
+        // Generate level and update mapIndices 
+        // moved to first tile click (in handleEvent) to gurantee that first click is not mine
+
+        // generateLevel();
         // Generate Tilemap
         return tilemap.load(tilesetPath, {tileSize, tileSize}, mapIndices, width, height);
+        // return true;
     }
 
     /**
@@ -82,9 +92,9 @@ namespace game
             if (!gameFinished && clock.isRunning())
                 timerText.setString(std::to_string(clock.getElapsedTime().asMilliseconds() / 1000));
             
-            // close game after 5s from game finish
+            // close game after delay 3.5s from game finish
             // note that clock is restarted at endGame()
-            else if (gameFinished && clock.getElapsedTime().asMilliseconds() >= 2000)
+            else if (gameFinished && clock.getElapsedTime().asMilliseconds() >= 3500)
             {
                 window.close();
                 return true;
@@ -102,7 +112,7 @@ namespace game
      * @brief puts mines in random tiles and updating their neighbours counter
      * 
      */
-    void Game::generateLevel()
+    void Game::generateLevel(uint16_t firstClickTileIndex)
     {
         srand(time(0));
         uint16_t size = width * height;
@@ -114,8 +124,8 @@ namespace game
             do
             {
                 mineIndex = rand() % size;
-                // find another position if mine already exist
-            } while (tiles[mineIndex].m_isMine); 
+                // find another position if position is on firstClicked tile or mine already exist
+            } while (firstClickTileIndex == mineIndex|| tiles[mineIndex].m_isMine); 
 
             tiles[mineIndex].m_isMine = true;
             // Update neighbours' counter
@@ -314,12 +324,12 @@ namespace game
             // start timer whenever the player presses on any position
             if (!clock.isRunning())
                 clock.start();
+
             
             // which button is pressed
             bool left = sf::Mouse::isButtonPressed(sf::Mouse::Button::Left);
             bool right = sf::Mouse::isButtonPressed(sf::Mouse::Button::Right);
 
-            // auto tileIndex2D = tileIndexFromScreenPos(mouse->position);
             auto tileIndex1D = tileIndexFromScreenPos(mouse->position);
 
             // Both Buttons Clicked (Peeking Neighbours)
@@ -388,22 +398,32 @@ namespace game
             // Left Button Clicked (opening/unhiding tile)
             else if (left)
             {
+                // Player opens first tile
+                if (!gameStarted)
+                {
+                    generateLevel(tileIndex1D);
+                    if (!tilemap.load(tilesetPath, {tileSize, tileSize}, mapIndices, width, height))
+                    {
+                        gameFinished = true;
+                        return;
+                    }
+                    gameStarted = true;
+                }
                 // ignore clicking on already-openned tiles
-                if (tiles[tileIndex1D].m_state == TileState::notHidden)
+                else if (tiles[tileIndex1D].m_state == TileState::notHidden)
                     return;
                 // player opens a mine -> Loses
-                if (tiles[tileIndex1D].m_isMine)
+                else if (tiles[tileIndex1D].m_isMine)
                 {
                     updateTile(tileIndex1D, TileState::mineClicked);
                     endGame(false);
+                    return;
                 }
-                else
-                {
-                    updateTile(tileIndex1D, TileState::notHidden);
-                    // player opens an empty tile
-                    if (tiles[tileIndex1D].m_mineCounter == 0)
-                        unhideEmptyNeighbours(tileIndex1D);
-                }
+                // player opens a non-mined tile
+                updateTile(tileIndex1D, TileState::notHidden);
+                // player opens an empty tile
+                if (tiles[tileIndex1D].m_mineCounter == 0)
+                    unhideEmptyNeighbours(tileIndex1D);
             }
 
             // Right Button Clicked (setting/unsetting flag)
