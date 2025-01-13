@@ -10,6 +10,10 @@
 
 namespace game
 {
+    // Static Data
+    static const uint16_t width = 16u;
+    static const uint16_t height = 16u;
+    ////////////////////////////////////////////////
     // Convert Dimensions (1D to 2D)
     sf::Vector2u convertDim1To2(uint16_t oneDim, uint16_t width);
     // Convert Dimensions (2D to 1D)
@@ -19,14 +23,11 @@ namespace game
     {
     public:
         // Default Constructor (You have to call init to initialize game)
-        Game()
-        {
-        }
+        Game();
 
         // Init The Game (should be called before run)
         bool init(const std::filesystem::path& tilesetPath, uint16_t tileSize);
         
-
         /**
          * @brief Game/Main Loop
          * 
@@ -35,15 +36,12 @@ namespace game
          */
         bool run();
         
-
     private:
         /**
          * @brief puts mines in random tiles and updating their neighbours counter
          * 
          */
         void generateLevel();
-
-
     
         /**
          * @brief update one tile's state
@@ -60,7 +58,6 @@ namespace game
          * @param state tile's new state
          */
         void updateTile(Tile* tilePtr, const TileState& state);
-
 
         /**
          * @brief Get array of pointers to neighbours of one tile
@@ -101,6 +98,11 @@ namespace game
          */
         bool checkWin();
 
+        /**
+         * @brief Ends the game, opens all hidden-mines and resets clock/timer
+         * 
+         * @param userWon whether user won or not
+         */
         void endGame(bool userWon);
 
         /**
@@ -112,10 +114,6 @@ namespace game
         uint16_t tileIndexFromScreenPos(const sf::Vector2i& screenPos);
 
     private:
-        // Static Data
-        static const uint16_t width = 9u;
-        static const uint16_t height = 9u;
-        ////////////////////////////////////////////////
 
         // Member Fields
         sf::RenderWindow window;
@@ -123,7 +121,7 @@ namespace game
         Tile tiles[width * height]; // array of structs representing tile states
         TileMap tilemap; // the board that is drawn
 
-        const uint16_t mines = 10; // Number of Mines in the map
+        const uint16_t mines = (width * height) / 3; // Number of Mines in the map -- relative to board size
         uint16_t flags = 0; // Number of flags put by player
         uint16_t mapIndices[width * height];
 

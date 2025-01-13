@@ -3,6 +3,11 @@
 
 namespace game
 {
+    // Default Constructor (You have to call init to initialize game)
+    Game::Game()
+    {
+
+    }
     // Convert Dimensions (1D to 2D)
     sf::Vector2u convertDim1To2(uint16_t oneDim, uint16_t width)
     {
@@ -473,6 +478,11 @@ namespace game
         return true;
     }
 
+    /**
+     * @brief Ends the game, opens all hidden-mines and resets clock/timer
+     * 
+     * @param userWon whether user won or not
+     */
     void Game::endGame(bool userWon)
     {
         // resetting timer and game state
