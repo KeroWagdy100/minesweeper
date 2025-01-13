@@ -3,7 +3,7 @@
 [Minesweeper](https://en.wikipedia.org/wiki/Minesweeper_(video_game)) is a logic puzzle video game genre generally played on personal computers. The game features a grid of clickable tiles, with hidden "mines" (depicted as naval mines in the original game) scattered throughout the board. The objective is to clear the board without detonating any mines, with help from clues about the number of neighboring mines in each field.
 
 ![Game Icon png](res/png/mine-icon-256.png)
-![Game Screenshot](res/JPG/game-screenshot.jpg)
+![Game Screenshot](res/jpg/game-screenshot.jpg)
 
 # CMake SFML Project Template
 
