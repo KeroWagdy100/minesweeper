@@ -57,20 +57,20 @@ public:
         sf::Vertex* triangles = &m_vertices[(j + i * m_width) * 6];
 
         // define current tile's vertices position
-        triangles[0].position = sf::Vector2f{j * m_tileSize.x, i * m_tileSize.y}; // top-left
-        triangles[1].position = sf::Vector2f{(j+1) * m_tileSize.x, i * m_tileSize.y}; // top-right
-        triangles[2].position = sf::Vector2f{j * m_tileSize.x, (i+1) * m_tileSize.y}; // bottom-left
-        triangles[3].position = sf::Vector2f{j * m_tileSize.x, (i+1) * m_tileSize.y}; // bottom-left
-        triangles[4].position = sf::Vector2f{(j+1) * m_tileSize.x, (i+1) * m_tileSize.y}; // bottom-right
-        triangles[5].position = sf::Vector2f{(j+1) * m_tileSize.x, i * m_tileSize.y}; // top-right
+        triangles[0].position = sf::Vector2f(j * m_tileSize.x, i * m_tileSize.y); // top-left
+        triangles[1].position = sf::Vector2f((j+1) * m_tileSize.x, i * m_tileSize.y); // top-right
+        triangles[2].position = sf::Vector2f(j * m_tileSize.x, (i+1) * m_tileSize.y); // bottom-left
+        triangles[3].position = sf::Vector2f(j * m_tileSize.x, (i+1) * m_tileSize.y); // bottom-left
+        triangles[4].position = sf::Vector2f((j+1) * m_tileSize.x, (i+1) * m_tileSize.y); // bottom-right
+        triangles[5].position = sf::Vector2f((j+1) * m_tileSize.x, i * m_tileSize.y); // top-right
 
         // define the matching texture coordinates
-        triangles[0].texCoords = sf::Vector2f{tu, tv}; // top-left
-        triangles[1].texCoords = sf::Vector2f{tu + m_tileSize.x, tv}; // top-right
-        triangles[2].texCoords = sf::Vector2f{tu, tv + m_tileSize.y}; // bottom-left
-        triangles[3].texCoords = sf::Vector2f{tu, tv + m_tileSize.y}; // bottom-left
-        triangles[4].texCoords = sf::Vector2f{tu + m_tileSize.x, tv + m_tileSize.y}; // bottom-right
-        triangles[5].texCoords = sf::Vector2f{tu + m_tileSize.x, tv}; // top-right
+        triangles[0].texCoords = sf::Vector2f(tu, tv); // top-left
+        triangles[1].texCoords = sf::Vector2f(tu + m_tileSize.x, tv); // top-right
+        triangles[2].texCoords = sf::Vector2f(tu, tv + m_tileSize.y); // bottom-left
+        triangles[3].texCoords = sf::Vector2f(tu, tv + m_tileSize.y); // bottom-left
+        triangles[4].texCoords = sf::Vector2f(tu + m_tileSize.x, tv + m_tileSize.y); // bottom-right
+        triangles[5].texCoords = sf::Vector2f(tu + m_tileSize.x, tv); // top-right
     }
 
 private:

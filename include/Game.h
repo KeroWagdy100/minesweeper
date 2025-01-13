@@ -22,7 +22,7 @@ namespace game
     // Convert Dimensions (1D to 2D)
     sf::Vector2u convertDim1To2(uint16_t oneDim, uint16_t width)
     {
-        return {oneDim / width, oneDim % width};
+        return {(unsigned int)(oneDim / width), (unsigned int)(oneDim % width)};
     }
     // Convert Dimensions (2D to 1D)
     uint16_t convertDim2To1(const sf::Vector2u& twoDim, uint16_t width)
@@ -491,8 +491,8 @@ namespace game
         /**
          * @brief returns tileIndex in 1-D array of given position on screen
          * 
-         * @param screenPos 
-         * @return sf::Vector2u 
+         * @param screenPos screen position (according to sfml)
+         * @return uint16_t index of tile in 1D array 
          */
         static uint16_t tileIndexFromScreenPos(const sf::Vector2i& screenPos)
         {
@@ -501,7 +501,7 @@ namespace game
             if (x < 0 || y < 0 || x >= width * tileSize || y >= height * tileSize)
                 return {};
             sf::Vector2u index2d = sf::Vector2u(y / tileSize, x / tileSize);
-            return convertDim2To1{index2d, width};
+            return convertDim2To1(index2d, width);
         }
 
     private:
