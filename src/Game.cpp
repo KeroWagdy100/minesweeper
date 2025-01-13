@@ -529,9 +529,11 @@ namespace game
     {
         const auto& x = screenPos.x;
         const auto& y = screenPos.y;
-        if (x < 0 || y < 0 || x >= width * tileSize || y >= height * tileSize)
+        const auto windowSize = window.getSize();
+        if (x < 0 || y < 0 || x >= windowSize.x || y >= windowSize.y)
             return {};
-        sf::Vector2u index2d = sf::Vector2u(y / tileSize, x / tileSize);
+        const auto currTileSize = sf::Vector2u(windowSize.y / width, windowSize.x / height);
+        sf::Vector2u index2d = sf::Vector2u(y / currTileSize.x, x / currTileSize.y);
         return convertDim2To1(index2d, width);
     }
 

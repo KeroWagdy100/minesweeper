@@ -15,5 +15,6 @@ FetchContent_MakeAvailable(SFML)
 include_directories(include)
 add_executable(main src/main.cpp
                     src/Tile.cpp
-                    src/Game.cpp)
+                    src/Game.cpp
+                    icon.rc)
 target_link_libraries(main PRIVATE SFML::Graphics)
