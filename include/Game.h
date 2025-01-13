@@ -31,23 +31,39 @@ namespace game
         // Init The Game (should be called before run)
         bool init(const std::filesystem::path& tilesetPath, uint16_t tileSize)
         {
-            this->tileSize = tileSize;
+            // Setup Game Fields
+            gameFinished = false;
+            flags = 0;
+
             // Setup Window
             window.create(sf::VideoMode({(unsigned int)(width * tileSize), (unsigned int)(height * tileSize)}), "Minesweeper" );
             window.setFramerateLimit(60);
             window.setIcon(sf::Image("res/png/mine-icon-256.png"));
+
             // Setup UI (Timer && N_MINES)
+            if (!font.openFromFile("res/fonts/DS-DIGI.TTF"))
+                return false;
             clock.reset();
 
+            unsigned int textSize = window.getSize().x / 20;
+            timerText.setFont(font);
+            timerText.setCharacterSize(textSize);
             timerText.setPosition({10u, 5u});
-            timerText.setFillColor(sf::Color::Red);
+            timerText.setFillColor(sf::Color::Black);
             timerText.setString(std::to_string(clock.getElapsedTime().asMilliseconds() * 1000));
 
+            minesText.setFont(font);
+            minesText.setCharacterSize(textSize);
             minesText.setPosition({10u, 35u});
             minesText.setFillColor(sf::Color::Red);
-            minesText.setString(std::to_string(mines - flags));
+            minesText.setString("mines: " + std::to_string(mines - flags));
             ///////////////////////////////////////////
 
+            // Setup Tiles
+            for (uint16_t i = 0; i < width * height; ++i)
+                tiles[i] = Tile();
+            this->tileSize = tileSize;
+            
             // Generate level and update mapIndices
             generateLevel();
             // Generate Tilemap
@@ -413,14 +429,14 @@ namespace game
                     {
                         updateTile(tileIndex1D, TileState::hidden);
                         flags--;
-                        minesText.setString(std::to_string(mines - flags));
+                        minesText.setString("mines: " + std::to_string(mines - flags));
                         return;
                     }
 
                     // setting a flag
                     updateTile(tileIndex1D, TileState::flagged);
                     flags++;
-                    minesText.setString(std::to_string(mines - flags));
+                    minesText.setString("mines: " + std::to_string(mines - flags));
 
                     // if player uses all their flags - endGame
                     // if all flags on all mines, then win, else lose
@@ -508,26 +524,26 @@ namespace game
 
     private:
         // Static Data
-        static const uint16_t width = 9u; // 2-bytes
-        static const uint16_t height = 9u; // 2-bytes
+        static const uint16_t width = 9u;
+        static const uint16_t height = 9u;
         ////////////////////////////////////////////////
 
         // Member Fields
-        uint16_t tileSize = 64u; // 2-bytes // tile size in pixel (64 x 64)
         sf::RenderWindow window;
-        TileMap tilemap;
-        Tile tiles[width * height];
+        uint16_t tileSize; // tile size in pixel (e.g. 64 x 64)
+        Tile tiles[width * height]; // array of structs representing tile states
+        TileMap tilemap; // the board that is drawn
 
         const uint16_t mines = 10; // Number of Mines in the map
         uint16_t flags = 0; // Number of flags put by player
         uint16_t mapIndices[width * height];
 
         sf::Clock clock;
-        sf::Font font = sf::Font("res/fonts/DS-DIGI.TTF");
-        sf::Text timerText = sf::Text(font, "00");
-        sf::Text minesText = sf::Text(font, "");
+        sf::Font font;
+        sf::Text timerText {font};
+        sf::Text minesText {font};
 
-        bool gameFinished = false;
+        bool gameFinished;
         ////////////////////////////////////////////////
     };
 };
