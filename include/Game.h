@@ -69,8 +69,10 @@ namespace game
                 
                 // close game after 5s from game finish
                 // note that clock is restarted at endGame()
-                else if (gameFinished && clock.getElapsedTime().asMilliseconds() >= 5000)
-                    break;
+                else if (gameFinished && clock.getElapsedTime().asMilliseconds() >= 2000)
+                {
+                    window.close();
+                }
                 window.draw(timerText);
                 window.draw(minesText);
                 window.display();
@@ -276,21 +278,20 @@ namespace game
             //     }
             // }
 
-            // else if (const auto* mouse = event->getIf<sf::Event::MouseButtonReleased>())
-            // {
-            //     if (wasPeeking)
-            //     {
-            //         Tile* neighborus[8];
-            //         auto counter = getNeighbours8(tilePeekedIndex1D, neighborus);
-            //         for (uint16_t i = 0; i < counter; i++)
-            //         {
-            //             if (neighborus[i]->m_state == TileState::peek)
-            //                 updateTile(neighborus[i], TileState::hidden);
-            //         }
-            //         wasPeeking = false;
-            //     }
-            // }
-            // PEEK ON HOVER END
+            else if (const auto* mouse = event->getIf<sf::Event::MouseButtonReleased>())
+            {
+                if (wasPeeking)
+                {
+                    Tile* neighborus[8];
+                    auto counter = getNeighbours8(tilePeekedIndex1D, neighborus);
+                    for (uint16_t i = 0; i < counter; i++)
+                    {
+                        if (neighborus[i]->m_state == TileState::peek)
+                            updateTile(neighborus[i], TileState::hidden);
+                    }
+                    wasPeeking = false;
+                }
+            }
 
             else if (const auto* mouse = event->getIf<sf::Event::MouseButtonPressed>())
             {
@@ -360,13 +361,12 @@ namespace game
                                 updateTile(neighbours[i], TileState::notHidden);
                         }
                     }
-                    // PEEK ON HOVER
-                    // else
-                    // {
-                    //     wasPeeking = true;
-                    //     tilePeekedIndex1D = tileIndex1D;
-                    // }
-                    // END OF PEEK ON HOVER
+                    // player was just peeking neighbours (not to open them)
+                    else
+                    {
+                        wasPeeking = true;
+                        tilePeekedIndex1D = tileIndex1D;
+                    }
                 }
 
                 // Left Button Clicked (opening/unhiding tile)
