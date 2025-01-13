@@ -27,33 +27,8 @@ namespace game
         bool  m_isMine = 0; // 1-byte
         TileState m_state = TileState::hidden; // 1-byte
 
-        mapIndex getMapIndex() const {
-            return getMapIndex(*this);
-        }
-
-        static mapIndex getMapIndex(const Tile& tile)
-        {
-            const auto& state = tile.m_state;
-            const auto& isMine = tile.m_isMine;
-            const auto& mineCounter = tile.m_mineCounter;
-
-            if (state == TileState::hidden)
-                return mapIndex::hidden;
-
-            else if (state == TileState::flagged)
-                return mapIndex::flag;
-
-            else if (state == TileState::peek)
-                return mapIndex::empty;
-
-            else if (state == TileState::mineClicked && isMine)
-                return mapIndex::mineClicked;
-
-            else if (isMine)
-                return mapIndex::mine;
-            else
-                return static_cast<mapIndex>(mineCounter);
-        }
+        mapIndex getMapIndex() const;
+        static mapIndex getMapIndex(const Tile& tile);
     };
     
 } // namespace game
