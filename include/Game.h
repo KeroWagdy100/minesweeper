@@ -234,27 +234,27 @@ namespace game
             if (i != height - 1)
             {
                 Tile* neighbour = &tiles[tileIndex1D + width];
-                if (neighbour->m_state == Tile::state::hidden)
+                if (neighbour->m_state == Tile::state::hidden || neighbour->m_state == Tile::state::peek)
                     neighbours[counter++] = neighbour; // down
             }
 
             if (i != 0)
             {
                 Tile* neighbour = &tiles[tileIndex1D - width];
-                if (neighbour->m_state == Tile::state::hidden)
+                if (neighbour->m_state == Tile::state::hidden || neighbour->m_state == Tile::state::peek)
                     neighbours[counter++] = neighbour; // up
             }
 
             if (j != width - 1)
             {
                 Tile* neighbour = &tiles[tileIndex1D + 1];
-                if (neighbour->m_state == Tile::state::hidden)
+                if (neighbour->m_state == Tile::state::hidden || neighbour->m_state == Tile::state::peek)
                     neighbours[counter++] = neighbour; // right
             }
             if (j != 0)
             {
                 Tile* neighbour = &tiles[tileIndex1D - 1];
-                if (neighbour->m_state == Tile::state::hidden)
+                if (neighbour->m_state == Tile::state::hidden || neighbour->m_state == Tile::state::peek)
                     neighbours[counter++] = neighbour; // left
             }
             return counter;
@@ -318,16 +318,45 @@ namespace game
                 auto tileIndex2D = tileIndexFromScreenPos(mouse->position);
                 if (left && right)
                 {
+                    if (tiles[tileIndex1D].m_state != Tile::state::notHidden)
+                        return;
                     Tile* neighbours[8];
                     auto counter = getNeighbours8(tileIndex1D, neighbours);
+                    uint16_t flagCounter = 0;
+                    bool flagNotOnMine = false;
 
                     for (uint16_t i = 0; i < counter; i++)
                     {
                         if (neighbours[i]->m_state == Tile::state::hidden)
                             updateTile(neighbours[i], Tile::state::peek);
+                        else if (neighbours[i]->m_state == Tile::state::flagged)
+                        {
+                            flagCounter++;
+                            if (!(neighbours[i]->m_isMine))
+                                flagNotOnMine = true;
+                        }
                     }
-                    wasPeeking = true;
-                    tilePeekedIndex1D = tileIndex1D;
+                    if (flagCounter == tiles[tileIndex1D].m_mineCounter)
+                    {
+                        if (flagNotOnMine)
+                            endGame();
+                        else
+                        {
+                            for (uint16_t i = 0; i < counter; i++)
+                            {
+                                Tile* neighbour = neighbours[i];
+                                if (neighbour->m_mineCounter == 0 && !neighbour->m_isMine)
+                                    unhideEmptyNeighbours(neighbours[i] - tiles);
+                                else if (!neighbour->m_isMine)
+                                    updateTile(neighbours[i], Tile::state::notHidden);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        wasPeeking = true;
+                        tilePeekedIndex1D = tileIndex1D;
+                    }
                 }
                 else if (left)
                 {
@@ -347,7 +376,18 @@ namespace game
                 else if (right)
                 {
                     if (tiles[tileIndex1D].m_state == Tile::state::hidden)
+                    {
                         updateTile(tileIndex1D, Tile::state::flagged);
+                        flags++;
+                        if (flags == mines)
+                            endGame();
+                    }
+                    else if (tiles[tileIndex1D].m_state == Tile::state::flagged)
+                    {
+                        updateTile(tileIndex1D, Tile::state::hidden);
+                        flags--;
+                    }
+                    
                 }
                 
 
@@ -355,6 +395,25 @@ namespace game
         }
 
 
+        // void unhideEmptyNeighbours8(uint16_t index1D)
+        // {
+        //     Tile* neighbours[8];
+            
+        //     uint16_t count = getHiddenNeighbours8(index1D, neighbours);
+        //     for (uint16_t i = 0; i < count; ++i)
+        //     {
+        //         if (!(neighbours[i]->m_isMine))
+        //         {
+        //             // unhide neighbour if not mine
+        //             updateTile(neighbours[i], Tile::state::notHidden);
+
+        //             // recursively unhide empty negihbours if current
+        //             // negihbour is empty
+        //             if (neighbours[i]->m_mineCounter == 0)
+        //                 unhideEmptyNeighbours8(neighbours[i] - tiles);
+        //         }
+        //     }
+        // }
         void unhideEmptyNeighbours(uint16_t index1D)
         {
             Tile* neighbours[4];
@@ -400,8 +459,8 @@ namespace game
         ////////////////////////////////////////////////
 
         // Member Fields
-        // uint16_t mines = (width * height) / 5; // TODO: change it 
-        uint16_t mines = 10; // TODO: change it 
+        uint16_t mines = 10; // TODO: change number of mines 
+        uint16_t flags = 0; 
         sf::RenderWindow window { sf::VideoMode({width * tileSize, height * tileSize}), "Minesweeper" }; // unknown-bytes
         TileMap tilemap;
         Tile tiles[width * height]; // 9 * 9 * 4 = 324-bytes
