@@ -79,6 +79,16 @@ namespace game
          * @return uint16_t number of hidden-close neighbours found (max: 4)
          */
         uint16_t getHiddenNeighbours4(const uint16_t tileIndex1D, Tile** neighbours);
+
+        /**
+         * @brief Get array of pointers to hidden-close neighbours of one tile
+         * a hidden neighbour: is a tile whose state is TileState::hidden
+         * a close neighbour can be [down, left, up, right]
+         * @param tileIndex1D index in 1Dim tiles array
+         * @param neighbours array of pointers (PLEASE MAKE SURE THAT THIS IS ALLOCATED IN MEMORY)
+         * @return uint16_t number of hidden-close neighbours found (max: 4)
+         */
+        uint16_t getHiddenNeighbours8(const uint16_t tileIndex1D, Tile** neighbours);
         
         void handleEvent(const std::optional<sf::Event>& event);
 

@@ -270,6 +270,77 @@ namespace game
         return counter;
     }
 
+    /**
+     * @brief Get array of pointers to hidden-close neighbours of one tile
+     * a hidden neighbour: is a tile whose state is TileState::hidden
+     * a close neighbour can be [down, left, up, right]
+     * @param tileIndex1D index in 1Dim tiles array
+     * @param neighbours array of pointers (PLEASE MAKE SURE THAT THIS IS ALLOCATED IN MEMORY)
+     * @return uint16_t number of hidden-close neighbours found (max: 4)
+     */
+    uint16_t Game::getHiddenNeighbours8(const uint16_t tileIndex1D, Tile** neighbours)
+    {
+        sf::Vector2u tileIndex2D = convertDim1To2(tileIndex1D, width);
+        auto& i = tileIndex2D.x;
+        auto& j = tileIndex2D.y;
+        uint16_t counter = 0;
+        if (i != height - 1)
+        {
+            Tile* neighbour = &tiles[tileIndex1D + width];
+            if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
+                neighbours[counter++] = neighbour; // down
+            if (j != width - 1)
+            {
+                neighbour = &tiles[tileIndex1D + width + 1];
+                if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
+                    neighbours[counter++] = neighbour; // down right
+            }
+
+            if (j != 0)
+            {
+                neighbour = &tiles[tileIndex1D + width - 1];
+                if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
+                    neighbours[counter++] = neighbour; // down left
+            }
+            
+        }
+
+        if (i != 0)
+        {
+            Tile* neighbour = &tiles[tileIndex1D - width];
+            if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
+                neighbours[counter++] = neighbour; // up
+
+            if (j != 0)
+            {
+                neighbour = &tiles[tileIndex1D - width - 1];
+                if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
+                    neighbours[counter++] = &tiles[tileIndex1D - width - 1]; // up-left
+            }
+
+            if (j != width - 1)
+            {
+                neighbour = &tiles[tileIndex1D - width + 1];
+                if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
+                    neighbours[counter++] = &tiles[tileIndex1D - width + 1]; // up-right
+            }
+        }
+
+        if (j != width - 1)
+        {
+            Tile* neighbour = &tiles[tileIndex1D + 1];
+            if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
+                neighbours[counter++] = neighbour; // right
+        }
+        if (j != 0)
+        {
+            Tile* neighbour = &tiles[tileIndex1D - 1];
+            if (neighbour->m_state == TileState::hidden || neighbour->m_state == TileState::peek)
+                neighbours[counter++] = neighbour; // left
+        }
+        return counter;
+    }
+
     void Game::handleEvent(const std::optional<sf::Event>& event)
     {
         static bool wasPeeking = false;
@@ -364,7 +435,7 @@ namespace game
 
                 // no. of neighbours with flags >= tile number itself
                 // then player is not peeking, but opening all neighbours
-                if (flagCounter == tiles[tileIndex1D].m_mineCounter)
+                if (flagCounter >= tiles[tileIndex1D].m_mineCounter)
                 {
                     // a flag was on wrong tile, and the player tries to open
                     // the tile, then player loses.
@@ -379,12 +450,15 @@ namespace game
                     for (uint16_t i = 0; i < counter; i++)
                     {
                         Tile* neighbour = neighbours[i];
+                        // skip mined-tiles
+                        if (neighbour->m_isMine)
+                            continue;
+                        // otherwise open the tile
+                        updateTile(neighbours[i], TileState::notHidden);
                         // if neighbour is empty, unhide all neighbour's neighbours !
-                        if (neighbour->m_mineCounter == 0 && !neighbour->m_isMine)
+                        if (neighbour->m_mineCounter == 0)
                             unhideEmptyNeighbours(neighbours[i] - tiles);
 
-                        else if (!neighbour->m_isMine)
-                            updateTile(neighbours[i], TileState::notHidden);
                     }
                 }
                 // player was just peeking neighbours (not to open them)
@@ -462,8 +536,8 @@ namespace game
      */
     void Game::unhideEmptyNeighbours(uint16_t index1D)
     {
-        Tile* neighbours[4];
-        uint16_t count = getHiddenNeighbours4(index1D, neighbours);
+        Tile* neighbours[8];
+        uint16_t count = getHiddenNeighbours8(index1D, neighbours);
         
         for (uint16_t i = 0; i < count; ++i)
         {
