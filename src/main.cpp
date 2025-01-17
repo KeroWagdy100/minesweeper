@@ -22,8 +22,6 @@ int main()
         if (!game.run())
             break;
 
-        std::cout << "Play Again ? (1 for Yes | 0 for No)\n";
-        std::cin >> playAgain;
-    } while (playAgain);
+    } while (true);
     return 0;
 }
