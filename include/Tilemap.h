@@ -4,7 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
-class TileMap : public sf::Drawable, public sf::Transformable
+class Tilemap : public sf::Drawable, public sf::Transformable
 {
 public:
     bool load(  const std::filesystem::path& tileset, /* texture/tileset filepath */
@@ -24,15 +24,9 @@ public:
         m_vertices.setPrimitiveType(sf::PrimitiveType::Triangles);
         m_vertices.resize(width * height * 6);
 
-        for (uint16_t i = 0; i < height; ++i)
-        {
-            for (uint16_t j = 0; j < width; ++j)
-            {
 
-                uint16_t tileNumber = tiles[j + i * width];
-                updateTile(i, j, tileNumber);
-            }
-        }
+        for (uint16_t i = 0; i < width * height; ++i)
+            updateTile(i, tiles[i]);
         return true;
     }
 
@@ -43,18 +37,18 @@ public:
      * @param j col
      * @param tileNumber newTileIndex on the tileset
      */
-    void updateTile(uint16_t i, uint16_t j, uint16_t tileNumber)
+    void updateTile(uint16_t index1D, uint16_t tileNumber)
     {
+        auto index2D = convert(index1D, m_width);
+        auto& i = index2D.x;
+        auto& j = index2D.y;
+
         // tile's pos on tileset
         uint16_t tu = (tileNumber % (m_tileset.getSize().x / m_tileSize.x)) * m_tileSize.x;
         uint16_t tv = (tileNumber / (m_tileset.getSize().x / m_tileSize.x)) * m_tileSize.y;
-        // uint16_t tu = tileNumber * m_tileSize.x;
-        // uint16_t tv = 0;
-        // the commented code work well if tileNumber is 100% in range of [0, tileSize - 1]
-        // but the uncommented code makes it work even if any tileNubmber exceed the range
 
         // vertices of current tile
-        sf::Vertex* triangles = &m_vertices[(j + i * m_width) * 6];
+        sf::Vertex* triangles = &m_vertices[index1D * 6];
 
         // define current tile's vertices position
         triangles[0].position = sf::Vector2f(j * m_tileSize.x, i * m_tileSize.y); // top-left
@@ -71,6 +65,18 @@ public:
         triangles[3].texCoords = sf::Vector2f(tu, tv + m_tileSize.y); // bottom-left
         triangles[4].texCoords = sf::Vector2f(tu + m_tileSize.x, tv + m_tileSize.y); // bottom-right
         triangles[5].texCoords = sf::Vector2f(tu + m_tileSize.x, tv); // top-right
+    }
+
+
+    // convert 1D index to 2D index
+    static sf::Vector2u convert(uint16_t index1D, uint16_t width)
+    {
+        return {(unsigned int)(index1D / width), (unsigned int)(index1D % width)};
+    }
+
+    static uint16_t convert(const sf::Vector2u& index2D, uint16_t width)
+    {
+        return index2D.y + index2D.x * width;
     }
 
 private:

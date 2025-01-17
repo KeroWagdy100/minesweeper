@@ -15,9 +15,9 @@ namespace game
     static const uint16_t height = 16u;
     ////////////////////////////////////////////////
     // Convert Dimensions (1D to 2D)
-    sf::Vector2u convertDim1To2(uint16_t oneDim, uint16_t width);
+    // sf::Vector2u convertDim1To2(uint16_t oneDim, uint16_t width);
     // Convert Dimensions (2D to 1D)
-    uint16_t convertDim2To1(const sf::Vector2u& twoDim, uint16_t width);
+    // uint16_t convertDim2To1(const sf::Vector2u& twoDim, uint16_t width);
 
     class Game
     {
@@ -106,6 +106,15 @@ namespace game
         void endGame(bool userWon);
 
         /**
+         * @brief Peek tile's neighbours and open them if number of flagged neighbours >= number of tile
+         * 
+         * @param tileIndex1D the tile user peeked at 
+         * @return true user was peeking not openning tiles -- this sets the wasPeeking state to true
+         * @return false user was openning tiles -- don't set wasPeeking state
+         */
+        bool peekNeighbours(uint16_t tileIndex1D);
+
+        /**
          * @brief returns tileIndex in 1-D array of given position on screen
          * 
          * @param screenPos screen position (according to sfml)
@@ -119,7 +128,7 @@ namespace game
         sf::RenderWindow window;
         uint16_t tileSize; // tile size in pixel (e.g. 64 x 64)
         Tile tiles[width * height]; // array of structs representing tile states
-        TileMap tilemap; // the board that is drawn
+        Tilemap board; // the board that is drawn
         std::filesystem::path tilesetPath;
 
         const uint16_t mines = (width * height) / 4; // Number of Mines in the map -- relative to board size
