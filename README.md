@@ -45,8 +45,11 @@ There are essentially five actions you can take in Minesweeper:
 
 ### Simple Way
 
-<!-- [Download the game](https://github.com/KeroWagdy100/minesweeper/releases/download/v1.0.0/minesweeper.zip) and start playing! -->
-[Download the Game](https://download-directory.github.io/?url=https%3A%2F%2Fgithub.com%2FKeroWagdy100%2Fminesweeper%2Ftree%2Fmaster%2Frelease), and start playing!
+
+- Go to [latest release](https://github.com/KeroWagdy100/minesweeper/releases/tag/v1.0.0)
+- Scroll down to "Assets"
+- Download minesweeper-v1.0.0.zip
+- Unzip the file and start playing!
 
 **!! (⚠ In general, opening a .exe file is dangerous unless from a trusted source) !!**
 
